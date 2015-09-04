@@ -1,15 +1,12 @@
-
 from flask import Flask, render_template, request, redirect
 from flask_bootstrap import Bootstrap
 import urllib2
 from bs4 import BeautifulSoup
 import re
-import sys
-import pandas
 
+import pandas
 from datetime import datetime
-import time
-from bokeh.plotting import figure, show, output_file, vplot, hplot
+from bokeh.plotting import figure, show, save, output_file, vplot, hplot
 
 #Function to Just want to take a look at the whole list first
 def ticket_dbs():
@@ -86,7 +83,8 @@ def create_grph(lst,df,stock,dbs):
         c.title = "%s Volumes" %(dbs[stock])
         c.grid.grid_line_alpha=0.3 
         p=vplot(hplot(a,b),c)
-        show(p)
+        #show(p)
+        save(p)
         return None
         
     elif u'Closing' in lst and u'Adjusted' in lst:
@@ -101,7 +99,7 @@ def create_grph(lst,df,stock,dbs):
         b.title = "%s Adjusted Closing Prices" %(dbs[stock])
         b.grid.grid_line_alpha=0.3 
         p=hplot(a,b)
-        show(p)
+        save(p)
         return None
         
     elif u'Closing' in lst and u'Volume' in lst:
@@ -116,7 +114,7 @@ def create_grph(lst,df,stock,dbs):
         c.title = "%s Volumes" %(dbs[stock])
         c.grid.grid_line_alpha=0.3 
         p=hplot(a,c)
-        show(p)
+        save(p)
         return None
         
     elif u'Adjusted' in lst and u'Volume' in lst:
@@ -131,7 +129,7 @@ def create_grph(lst,df,stock,dbs):
         c.title = "%s Volumes" %(dbs[stock])
         c.grid.grid_line_alpha=0.3 
         p=hplot(b,c)
-        show(p)
+        save(p)
         return None
     
     elif u'Closing' in lst:
@@ -140,7 +138,7 @@ def create_grph(lst,df,stock,dbs):
         a.line(df['Date'], df['Closing'], color='#1F78B4', legend='Closing Prices')
         a.title = "%s Closing Prices" %(dbs[stock])
         a.grid.grid_line_alpha=0.3
-        show(a)
+        save(a)
         return None
         
     elif u'Adjusted' in lst:
@@ -149,7 +147,7 @@ def create_grph(lst,df,stock,dbs):
         b.line(df['Date'], df['Adj Closing'], color='#FF0000', legend='Adjusted Closing Prices')
         b.title = "%s Adjusted Closing Prices" %(dbs[stock])
         b.grid.grid_line_alpha=0.3 
-        show(b)
+        save(b)
         return None
     
     elif u'Volume' in lst:
@@ -158,15 +156,12 @@ def create_grph(lst,df,stock,dbs):
         c.line(df['Date'], df['Volume'], color='#228B22', legend='Volumes')
         c.title = "%s Volumes" %(dbs[stock])
         c.grid.grid_line_alpha=0.3 
-        show(c)
+        save(c)
         return None
 
 app = Flask(__name__)
 Bootstrap(app)
 
-#@app.route('/')
-#def main():
-  #return redirect('/index')
 
 #@app.route('/index',methods=['GET','POST'])
 #def index():
@@ -180,6 +175,10 @@ app.nquestions=len(app.questions)
 #Just a dictionary for the name of the stock
 ticket_database=ticket_dbs()
 
+@app.route('/')
+def main():
+  return redirect('/index')
+  
 @app.route('/index',methods=['GET','POST'])
 def index():
     nquestions=app.nquestions
@@ -209,10 +208,13 @@ def index():
             create_grph(lst,df,stock_name,ticket_database)
             return redirect('/answer')
 
-@app.route('/errormsg') 
+@app.route('/errormsg', methods=['GET','POST']) 
 def errormsg():
-    return render_template('errormsg.html')
-
+    if request.method == 'GET':
+        return render_template('errormsg.html')
+    else:
+        return redirect('/index')
+        
 @app.route('/nochoice',methods=['GET','POST']) 
 def nochoice():
     if request.method == 'GET':
@@ -220,12 +222,9 @@ def nochoice():
     else:
         return redirect('/index')
 
-@app.route('/answer') 
+@app.route('/answer',methods=['GET']) 
 def answer():
     return render_template("stock.html")
     
 if __name__ == '__main__':
-  #app.run(port=33507)
-    port=int(os.environ.get("PORT",5000))
-    app.run(host='0.0.0.0',port=port)
-
+    app.run(host='0.0.0.0')
