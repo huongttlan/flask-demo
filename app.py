@@ -10,9 +10,7 @@ from bokeh.plotting import figure, show, save, output_file, vplot, hplot
 
 #Function to Just want to take a look at the whole list first
 def ticket_dbs():
-    ticket_list=pandas.read_csv\
-            ("https://s3.amazonaws.com/quandl-static-content/Ticker+CSV%27s/WIKI_tickers.csv",\
-            sep=",")
+    ticket_list=pandas.read_csv("WIKI_tickers.csv", sep=",")
     for i in xrange(ticket_list.shape[0]):
         temp=re.search(r'WIKI/',ticket_list.ix[i,0])
         if temp:
