@@ -8,17 +8,6 @@ import pandas
 from datetime import datetime
 from bokeh.plotting import figure, show, save, output_file, vplot, hplot
 
-#Function to Just want to take a look at the whole list first
-def ticket_dbs():
-    ticket_list=pandas.read_csv("WIKI_tickers.csv", sep=",")
-    for i in xrange(ticket_list.shape[0]):
-        temp=re.search(r'WIKI/',ticket_list.ix[i,0])
-        if temp:
-            ticket_list.ix[i,0]=ticket_list.ix[i,0][temp.end():]
-    ticket_name=ticket_list.set_index(list(ticket_list.columns.values)[0])\
-                [list(ticket_list.columns.values)[1]].to_dict()
-    return ticket_name #A dictionary that u have all of the name of the stocks
-
 #Function to read in the web and create data frame
 def extract_data(link):
     #Open the data to get the values
