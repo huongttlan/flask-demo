@@ -26,17 +26,23 @@ def extract_data(link):
         response = urllib2.urlopen(req)
         the_page = response.read()
         stocks=BeautifulSoup(the_page,"html.parser")
-        colname=stocks.find_all('column-name') 
+        #colname=stocks.find_all('column-name') 
         #Get the column names to know which one to extract
+     
+        #colname_clean=[]
+        #for i in xrange(len(colname)):
+            #colname_clean.append(repr(colname[i].contents))
+            #if repr(colname[i].contents)=="[u'Date']": date_ix=i
+            #elif repr(colname[i].contents)=="[u'Close']": close_ix=i
+            #elif repr(colname[i].contents)=="[u'Adj. Close']": adjclose_ix=i
+            #elif repr(colname[i].contents)=="[u'Volume']": vol_ix=i
         
-        colname_clean=[]
-        for i in xrange(len(colname)):
-            colname_clean.append(repr(colname[i].contents))
-            if repr(colname[i].contents)=="[u'Date']": date_ix=i
-            elif repr(colname[i].contents)=="[u'Close']": close_ix=i
-            elif repr(colname[i].contents)=="[u'Adj. Close']": adjclose_ix=i
-            elif repr(colname[i].contents)=="[u'Volume']": vol_ix=i
-
+        date_ix=0
+        close_ix=4
+        adjclose_ix=11 
+        vol_ix=5
+        #print date_ix, close_ix, adjclose_ix, vol_ix
+        
         group=stocks.find_all('datum')
         datelist=[] #list for date
         closelist=[] #list for closing prices
@@ -59,111 +65,55 @@ def extract_data(link):
         return df
         
 #Function to create graph
-def create_grph(lst,df,stock,dbs):
+def create_grph(lst,df,stock):
     TOOLS = "pan,wheel_zoom,box_zoom,reset,save"
-    
     #Just figure out how to divide the graph to make it nicer
-    
-    if u'Closing' in lst and u'Adjusted' in lst and u'Volume' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
+    fig_list=[]
+    if u'Closing' in lst:
+        output_file("./templates/stock.html", title=stock)
         a = figure(x_axis_type = "datetime", tools=TOOLS)
         a.line(df['Date'], df['Closing'], color='#1F78B4', legend='Closing Prices')
-        a.title = "%s Closing Prices" %(dbs[stock])
+        a.title = "%s Closing Prices" %(stock)
         a.grid.grid_line_alpha=0.3
-        
+        fig_list.append('a')
+    
+    if u'Adjusted' in lst:
+        output_file("./templates/stock.html", title=stock)
         b = figure(x_axis_type = "datetime", tools=TOOLS)
         b.line(df['Date'], df['Adj Closing'], color='#FF0000', legend='Adjusted Closing Prices')
-        b.title = "%s Adjusted Closing Prices" %(dbs[stock])
-        b.grid.grid_line_alpha=0.3
+        b.title = "%s Adjusted Closing Prices" %(stock)
+        b.grid.grid_line_alpha=0.3 
+        fig_list.append('b')
 
+    if u'Volume' in lst:
+        output_file("./templates/stock.html", title=stock)
         c = figure(x_axis_type = "datetime", tools=TOOLS)
         c.line(df['Date'], df['Volume'], color='#228B22', legend='Volumes')
-        c.title = "%s Volumes" %(dbs[stock])
+        c.title = "%s Volumes" %(stock)
         c.grid.grid_line_alpha=0.3 
+        fig_list.append('c')
+        
+    if 'a' in fig_list and 'b' in fig_list and 'c' in fig_list:
         p=vplot(hplot(a,b),c)
-        #show(p)
-        save(p)
-        return None
-        
-    elif u'Closing' in lst and u'Adjusted' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
-        a = figure(x_axis_type = "datetime", tools=TOOLS)
-        a.line(df['Date'], df['Closing'], color='#1F78B4', legend='Closing Prices')
-        a.title = "%s Closing Prices" %(dbs[stock])
-        a.grid.grid_line_alpha=0.3
-
-        b = figure(x_axis_type = "datetime", tools=TOOLS)
-        b.line(df['Date'], df['Adj Closing'], color='#FF0000', legend='Adjusted Closing Prices')
-        b.title = "%s Adjusted Closing Prices" %(dbs[stock])
-        b.grid.grid_line_alpha=0.3 
+    elif 'a' in fig_list and 'b' in fig_list:
         p=hplot(a,b)
-        save(p)
-        return None
-        
-    elif u'Closing' in lst and u'Volume' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
-        a = figure(x_axis_type = "datetime", tools=TOOLS)
-        a.line(df['Date'], df['Closing'], color='#1F78B4', legend='Closing Prices')
-        a.title = "%s Closing Prices" %(dbs[stock])
-        a.grid.grid_line_alpha=0.3
-
-        c = figure(x_axis_type = "datetime", tools=TOOLS)
-        c.line(df['Date'], df['Volume'], color='#228B22', legend='Volumes')
-        c.title = "%s Volumes" %(dbs[stock])
-        c.grid.grid_line_alpha=0.3 
+    elif 'a' in fig_list and 'c' in fig_list:
         p=hplot(a,c)
-        save(p)
-        return None
-        
-    elif u'Adjusted' in lst and u'Volume' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
-        b = figure(x_axis_type = "datetime", tools=TOOLS)
-        b.line(df['Date'], df['Adj Closing'], color='#FF0000', legend='Adjusted Closing Prices')
-        b.title = "%s Adjusted Closing Prices" %(dbs[stock])
-        b.grid.grid_line_alpha=0.3 
-
-        c = figure(x_axis_type = "datetime", tools=TOOLS)
-        c.line(df['Date'], df['Volume'], color='#228B22', legend='Volumes')
-        c.title = "%s Volumes" %(dbs[stock])
-        c.grid.grid_line_alpha=0.3 
+    elif 'b' in fig_list and 'c' in fig_list:
         p=hplot(b,c)
-        save(p)
-        return None
-    
-    elif u'Closing' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
-        a = figure(x_axis_type = "datetime", tools=TOOLS)
-        a.line(df['Date'], df['Closing'], color='#1F78B4', legend='Closing Prices')
-        a.title = "%s Closing Prices" %(dbs[stock])
-        a.grid.grid_line_alpha=0.3
-        save(a)
-        return None
-        
-    elif u'Adjusted' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
-        b = figure(x_axis_type = "datetime", tools=TOOLS)
-        b.line(df['Date'], df['Adj Closing'], color='#FF0000', legend='Adjusted Closing Prices')
-        b.title = "%s Adjusted Closing Prices" %(dbs[stock])
-        b.grid.grid_line_alpha=0.3 
-        save(b)
-        return None
-    
-    elif u'Volume' in lst:
-        output_file("./templates/stock.html", title=dbs[stock])
-        c = figure(x_axis_type = "datetime", tools=TOOLS)
-        c.line(df['Date'], df['Volume'], color='#228B22', legend='Volumes')
-        c.title = "%s Volumes" %(dbs[stock])
-        c.grid.grid_line_alpha=0.3 
-        save(c)
-        return None
+    elif 'a' in fig_list:
+        p=a
+    elif 'b' in fig_list:
+        p=b
+    elif 'c' in fig_list:
+        p=c
+
+    save(p)
+    return None
 
 app = Flask(__name__)
 Bootstrap(app)
 
-
-#@app.route('/index',methods=['GET','POST'])
-#def index():
-  #return render_template('index.html')
 
 #Multiple choice questions
 app.questions={}
@@ -171,7 +121,7 @@ app.questions['Stock']=('Closing price','Adjusted closing price','Volume')
 app.nquestions=len(app.questions)
 
 #Just a dictionary for the name of the stock
-ticket_database=ticket_dbs()
+#ticket_database=ticket_dbs()
 
 @app.route('/')
 def main():
@@ -193,18 +143,17 @@ def index():
         
         #Now deal with when no choice is chosen
         
-        if stock_name not in ticket_database.keys(): 
-            return redirect('/errormsg')
-        elif u'Closing' not in lst and u'Adjusted' not in lst and u'Volume' not in lst:
+        #if stock_name not in ticket_database.keys(): 
+        if u'Closing' not in lst and u'Adjusted' not in lst and u'Volume' not in lst:
             return redirect('/nochoice')
-        else:
-            link="https://www.quandl.com/api/v3/datasets/WIKI/" + \
-                 stock_name +".xml"
-            #Data frame for stock value
-            df=extract_data(link)
-            #Now create graph
-            create_grph(lst,df,stock_name,ticket_database)
-            return redirect('/answer')
+        else: 
+            try:
+                link="https://www.quandl.com/api/v3/datasets/WIKI/" + stock_name + ".xml" 
+                df=extract_data(link)
+                create_grph(lst,df,stock_name)
+                return redirect('/answer')
+            except:
+                return redirect('/errormsg')
 
 @app.route('/errormsg', methods=['GET','POST']) 
 def errormsg():
